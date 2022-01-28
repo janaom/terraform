@@ -1,3 +1,4 @@
+#ssh connection is not working
 provider "aws" {
     region = "eu-central-1"
 }
