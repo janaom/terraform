@@ -1,0 +1,55 @@
+provider "aws" {
+    region = "eu-central-1"
+}
+resource "aws_instance" "my_ubuntu" {
+    ami = "ami-0d527b8c289b4af7f"
+    instance_type = "t2.micro"
+    key_name = "terraform"
+    associate_public_ip_address = true
+    vpc_security_group_ids = [aws_security_group.my_ubuntu.id]
+connection {
+  type = "ssh"
+  user = "ubuntu"
+  private_key = file("./terraform.pem")
+  host = aws_instance.my_ubuntu.public_ip
+}
+provisioner "local-exec" {
+command = "ansible-playbook -i ${aws_instance.my_ubuntu.public_ip}, main.yaml -vvvv"
+}
+}
+resource "aws_security_group" "my_ubuntu" {
+  name        = "my_ubuntu security group"
+  description = "Allow my_ubuntu inbound traffic"
+
+  ingress {
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+}
+
+ingress {
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+    tags = {
+    Project = "nginx via terraform"
+    Department = "CnA"
+    Owner = "Jana"
+}
+}
