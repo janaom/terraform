@@ -1,4 +1,3 @@
-#ssh connection is not working
 provider "aws" {
     region = "eu-central-1"
 }
@@ -9,30 +8,38 @@ resource "aws_instance" "my_ubuntu" {
     associate_public_ip_address = true
     vpc_security_group_ids = [aws_security_group.my_ubuntu.id]
 
-provisioner "remote-exec" {
-    inline = [
-      "sudo amazon-linux-extras install -y nginx1.12",
-      "sudo systemctl start nginx"
-]
+}
+resource "null_resource" "test1" {
+
 connection {
   type = "ssh"
-  user = "terraform"
+  user = "ubuntu"
   private_key = file("./terraform.pem")
-  host = self.public_ip
+  host = aws_instance.my_ubuntu.public_ip
+}
+
+
+provisioner "remote-exec" {
+    inline = [
+
+      "sudo touch /opt/test1",
+      "sudo apt-get install -y nginx",
+      "sudo systemctl start nginx"
+]
 }
 }
-}
+
 resource "aws_security_group" "my_ubuntu" {
   name        = "my_ubuntu security group"
   description = "Allow my_ubuntu inbound traffic"
-
+  
   ingress {
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
-  
+
   ingress {
     from_port        = 22
     to_port          = 22
@@ -52,7 +59,7 @@ ingress {
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
   }
-  
+
     tags = {
     Project = "nginx via terraform"
     Department = "CnA"
