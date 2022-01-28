@@ -1,0 +1,17 @@
+---
+- name: playbook1
+  hosts: all
+  remote_user: ubuntu
+  become: yes
+  tasks:
+  - name: first task
+    debug:
+      msg: this is a test
+  - name: install nginx
+    apt:
+      name: nginx
+      state: latest
+  - name: start nginx
+    systemd:
+      state: started
+      name: nginx
